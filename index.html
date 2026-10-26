@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f1e8">
+  <title>Cifra de César</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --black: #000;
+      --green: #00d447;
+      --dim-green: #008f30;
+      font-family: "Cascadia Code", "Courier New", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--green);
+      background: var(--black);
+    }
+
+    .matrix-rain {
+      position: fixed;
+      z-index: 0;
+      overflow: hidden;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .matrix-rain span {
+      position: absolute;
+      top: -100vh;
+      color: var(--green);
+      font-size: 12px;
+      line-height: 1.8;
+      opacity: 0.08;
+      animation: binary-fall 18s linear infinite;
+    }
+
+    .matrix-rain span:nth-child(1) { left: 8%; animation-duration: 21s; }
+    .matrix-rain span:nth-child(2) { left: 25%; animation-duration: 17s; animation-delay: -8s; }
+    .matrix-rain span:nth-child(3) { left: 42%; animation-duration: 23s; animation-delay: -14s; }
+    .matrix-rain span:nth-child(4) { left: 59%; animation-duration: 16s; animation-delay: -4s; }
+    .matrix-rain span:nth-child(5) { left: 76%; animation-duration: 20s; animation-delay: -11s; }
+    .matrix-rain span:nth-child(n+6) { display: none; }
+
+    @keyframes binary-fall {
+      to { transform: translateY(200vh); }
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      width: min(100% - 40px, 980px);
+      margin: 0 auto;
+      padding: 52px 0 64px;
+    }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 30px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .seal {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border: 0;
+      color: var(--green);
+      font-size: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--green);
+      font-size: 56px;
+      font-weight: 700;
+      line-height: 0.98;
+    }
+
+    .intro {
+      max-width: 510px;
+      margin: 17px 0 34px;
+      color: var(--dim-green);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .cipher-panel {
+      overflow: hidden;
+      border-top: 1px solid var(--dim-green);
+      border-bottom: 1px solid var(--dim-green);
+      background: transparent;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--dim-green);
+    }
+
+    .panel-head h2,
+    .panel-head p { margin: 0; }
+
+    .panel-head h2 {
+      color: var(--green);
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .shift-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .shift-badge::before {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      content: "";
+    }
+
+    .alphabet {
+      display: grid;
+      grid-template-columns: repeat(13, minmax(0, 1fr));
+      gap: 8px;
+      padding: 24px 0;
+    }
+
+    .letter-pair {
+      display: grid;
+      min-height: 72px;
+      align-content: center;
+      justify-items: center;
+      gap: 3px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    .letter-pair span {
+      color: var(--dim-green);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .letter-pair strong {
+      color: var(--green);
+      font-size: 23px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    .letter-pair.is-wrap {
+      color: var(--green);
+    }
+
+    .key-area {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 20px 24px;
+      border-top: 1px solid var(--dim-green);
+    }
+
+    .key-copy label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .key-copy p {
+      margin: 0;
+      color: var(--dim-green);
+      font-size: 12px;
+    }
+
+    .key-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .key-control button,
+    .key-control input {
+      height: 48px;
+      border: 1px solid var(--dim-green);
+      border-radius: 0;
+      background: var(--black);
+      color: var(--green);
+      font: inherit;
+    }
+
+    .key-control button {
+      width: 48px;
+      cursor: pointer;
+      font-size: 22px;
+      transition: border-color 140ms ease;
+    }
+
+    .key-control button:hover {
+      border-color: var(--green);
+    }
+
+    .key-control input {
+      width: 82px;
+      padding: 0 12px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: 800;
+      appearance: textfield;
+    }
+
+    .key-control input::-webkit-inner-spin-button,
+    .key-control input::-webkit-outer-spin-button { appearance: none; }
+
+    .key-control button:focus-visible,
+    .key-control input:focus-visible {
+      outline: 2px solid var(--green);
+      outline-offset: 2px;
+    }
+
+    .hint {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 18px;
+      color: var(--dim-green);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .hint-mark {
+      display: grid;
+      flex: 0 0 22px;
+      height: 22px;
+      place-items: center;
+      border-radius: 0;
+      background: transparent;
+      color: var(--green);
+      font-weight: 800;
+    }
+
+    @media (max-width: 650px) {
+      main { width: min(100% - 28px, 500px); padding-top: 34px; }
+      h1 { font-size: 40px; }
+      .topline { margin-bottom: 24px; }
+      .intro { margin-bottom: 24px; }
+      .panel-head { padding: 17px 16px; }
+      .alphabet { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; padding: 16px; }
+      .letter-pair { min-height: 62px; }
+      .letter-pair strong { font-size: 21px; }
+      .key-area { align-items: flex-start; flex-direction: column; gap: 16px; padding: 18px 16px; }
+      .key-control { width: 100%; }
+      .key-control input { flex: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="matrix-rain" aria-hidden="true">
+    <span>0<br>1<br>0<br>0<br>1<br>1<br>0<br>1<br>0<br>1<br>1<br>0<br>0<br>1<br>0<br>1<br>1<br>0<br>1<br>0<br>0<br>1<br>1<br>0<br>1<br>0<br>1<br>1<br>0<br>0</span>
+    <span>0<br>1<br>1<br>0<br>1<br>0<br>0<br>1<br>0<br>1<br>0<br>0<br>1<br>1<br>0<br>1<br>1<br>0<br>0<br>1<br>0<br>1<br>1<br>0<br>1<br>0<br>0<br>1<br>0<br>1</span>
+    <span>0<br>0<br>1<br>0<br>1<br>1<br>0<br>1<br>0<br>0<br>1<br>1<br>0<br>1<br>0<br>1<br>0<br>0<br>1<br>1<br>0<br>1<br>1<br>0<br>0<br>1<br>0<br>1<br>1<br>0</span>
+    <span>0<br>1<br>0<br>1<br>1<br>0<br>0<br>1<br>1<br>0<br>1<br>0<br>0<br>1<br>0<br>1<br>1<br>0<br>1<br>0<br>1<br>1<br>0<br>0<br>1<br>0<br>1<br>0<br>0<br>1</span>
+    <span>1<br>0<br>1<br>0<br>0<br>1<br>1<br>0<br>1<br>1<br>0<br>0<br>1<br>0<br>1<br>1<br>0<br>0<br>1<br>0<br>1<br>0<br>1<br>1<br>0<br>0<br>1<br>1<br>0<br>1</span>
+    <span>0<br>1<br>0<br>0<br>1<br>1<br>0<br>1<br>1<br>0<br>1<br>0<br>1<br>0<br>0<br>1<br>1<br>0<br>1<br>0<br>0<br>1<br>0<br>1<br>1<br>0<br>0<br>1<br>0<br>1</span>
+    <span>1<br>0<br>0<br>1<br>1<br>0<br>1<br>0<br>0<br>1<br>0<br>1<br>1<br>0<br>1<br>0<br>0<br>1<br>1<br>0<br>1<br>1<br>0<br>0<br>1<br>0<br>1<br>1<br>0<br>1</span>
+  </div>
+  <main>
+    <div class="topline"><span class="seal" aria-hidden="true">C</span> Laboratório de cifras</div>
+    <h1>Cifra de César</h1>
+    <p class="intro">Escolha uma chave e veja cada letra avançar pelo alfabeto. A substituição muda na hora.</p>
+
+    <section class="cipher-panel" aria-labelledby="alphabet-title">
+      <div class="panel-head">
+        <h2 id="alphabet-title">Alfabeto codificado</h2>
+        <p class="shift-badge" id="shift-label" aria-live="polite">Chave 03</p>
+      </div>
+      <div class="alphabet" id="alphabet" aria-label="Correspondência entre letras originais e codificadas"></div>
+      <div class="key-area">
+        <div class="key-copy">
+          <label for="key">Número da chave</label>
+          <p>Use um valor de 0 a 25.</p>
+        </div>
+        <div class="key-control">
+          <button type="button" id="decrease" aria-label="Diminuir chave">−</button>
+          <input id="key" type="number" min="0" max="25" step="1" value="3" inputmode="numeric">
+          <button type="button" id="increase" aria-label="Aumentar chave">+</button>
+        </div>
+      </div>
+    </section>
+
+    <p class="hint"><span class="hint-mark" aria-hidden="true">i</span><span>Na chave 3, por exemplo, A vira D. As últimas letras voltam ao início do alfabeto.</span></p>
+  </main>
+
+  <script>
+    const alphabet = document.querySelector("#alphabet");
+    const keyInput = document.querySelector("#key");
+    const shiftLabel = document.querySelector("#shift-label");
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    function updateAlphabet() {
+      const key = Number(keyInput.value);
+      if (!Number.isInteger(key) || key < 0 || key > 25) return;
+
+      shiftLabel.textContent = `Chave ${String(key).padStart(2, "0")}`;
+      alphabet.replaceChildren(...[...letters].map((letter, index) => {
+        const pair = document.createElement("div");
+        const encoded = letters[(index + key) % letters.length];
+        pair.className = `letter-pair${index + key >= letters.length ? " is-wrap" : ""}`;
+
+        const originalLetter = document.createElement("span");
+        originalLetter.textContent = letter;
+        const encodedLetter = document.createElement("strong");
+        encodedLetter.textContent = encoded;
+        pair.append(originalLetter, encodedLetter);
+        pair.setAttribute("aria-label", `${letter} vira ${encoded}`);
+        return pair;
+      }));
+    }
+
+    keyInput.addEventListener("input", updateAlphabet);
+    keyInput.addEventListener("change", () => {
+      const value = Number(keyInput.value);
+      if (keyInput.value === "" || !Number.isFinite(value)) keyInput.value = "0";
+      else keyInput.value = String(Math.min(25, Math.max(0, Math.trunc(value))));
+      updateAlphabet();
+    });
+    document.querySelector("#decrease").addEventListener("click", () => {
+      keyInput.value = String(Math.max(0, Number(keyInput.value) - 1));
+      updateAlphabet();
+    });
+    document.querySelector("#increase").addEventListener("click", () => {
+      keyInput.value = String(Math.min(25, Number(keyInput.value) + 1));
+      updateAlphabet();
+    });
+
+    updateAlphabet();
+  </script>
+</body>
+</html>
